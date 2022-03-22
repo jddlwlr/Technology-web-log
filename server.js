@@ -1,28 +1,26 @@
-// general imports
 const express = require("express");
+const session = require("express-session");
 const routes = require("./controllers");
-const sequelize = require("./config/connection");
-const path = require("path");
-
-//import helper functions
 const helpers = require("./utils/helpers");
-
-// import handlebars
+const sequelize = require("./config/connection");
+const SequelizeStore = require("connect-session-sequelize")(session.Store);
 const exphbs = require("express-handlebars");
+
+require("dotenv").config();
+
+const PORT = process.env.PORT || 3000;
+
 const hbs = exphbs.create({ helpers });
 
-// import express-sessions
-const session = require("express-session");
-
+// Creating express app and configuring middleware needed for authentication
 const app = express();
-const PORT = process.env.PORT || 3001;
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static("public"));
 
-const SequelizeStore = require("connect-session-sequelize")(session.Store);
-
-// session
 const sess = {
-  secret: "super super secret",
-  cookie: { originalMaxAge: 600000 },
+  secret: "Super secret secret",
+  cookie: {},
   resave: false,
   saveUninitialized: true,
   store: new SequelizeStore({
@@ -30,19 +28,29 @@ const sess = {
   }),
 };
 
-// use all that
 app.use(session(sess));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
-// use handlebars
+
 app.engine("handlebars", hbs.engine);
 app.set("view engine", "handlebars");
 
-//use the routes
+// Routes
 app.use(routes);
 
-// GO!
-sequelize.sync({ force: false }).then(() => {
-  app.listen(PORT, () => console.log("Now listening"));
+const syncOptions = { force: false };
+
+// If running a test, set syncOptions.force to true
+// clearing the `testdb`
+if (process.env.NODE_ENV === "test") {
+  syncOptions.force = true;
+}
+
+// Starting the server, syncing our models ------------------------------------/
+sequelize.sync(syncOptions).then(function () {
+  app.listen(PORT, function () {
+    console.log(
+      "==> 🌎  Listening on port %s. Visit http://localhost:%s/ in your browser.",
+      PORT,
+      PORT
+    );
+  });
 });
