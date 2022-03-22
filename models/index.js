@@ -22,7 +22,7 @@ Comment.belongsTo(User, {
   onDelete: "cascade"
 });
 
-User.hasMany(Comment, {
+User.hasMany(Comment, { 
   foreignKey: 'user_id',
   onDelete: "cascade"
 });
