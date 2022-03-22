@@ -16,7 +16,7 @@ const hbs = exphbs.create({ helpers });
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(__dirname + "/public"));
 
 const sess = {
   secret: "Super secret secret",
